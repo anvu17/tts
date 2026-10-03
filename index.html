@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>An Vu TTS - SpeechSynthesis Text to Speech</title>
+  <meta name="description"
+    content="Free text-to-speech tool using the browser's SpeechSynthesis API. Convert text to speech and download audio directly in your browser.">
+  <meta name="author" content="An Vu">
+  <meta name="format-detection" content="telephone=no">
+  <link rel="canonical" href="https://anvu.dev/tts/">
+  <meta property="og:url" content="https://anvu.dev/tts/">
+  <meta property="og:title" content="An Vu TTS - SpeechSynthesis Text to Speech">
+  <meta property="og:description"
+    content="Free text-to-speech tool using the browser's SpeechSynthesis API. Convert text to speech and download audio directly in your browser.">
+  <meta property="og:image" content="https://anvu.dev/tts/og-image.png">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="An Vu TTS">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="An Vu TTS - SpeechSynthesis Text to Speech">
+  <meta name="twitter:description"
+    content="Free text-to-speech tool using the browser's SpeechSynthesis API. Convert text to speech and download audio directly in your browser.">
+  <meta name="twitter:image" content="https://anvu.dev/tts/og-image.png">
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%232563eb'/><text x='50' y='65' font-size='46' font-family='sans-serif' font-weight='600' fill='white' text-anchor='middle'>TTS</text></svg>">
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "An Vu TTS",
+  "alternateName": "An Vu Text to Speech",
+  "applicationCategory": "UtilitiesApplication",
+  "operatingSystem": "All",
+  "description": "Free text-to-speech tool using the browser's SpeechSynthesis API. Convert text to speech and download audio directly in your browser.",
+  "browserRequirements": "Requires a browser with SpeechSynthesis API support",
+  "softwareRequirements": "SpeechSynthesis API",
+  "featureList": [
+    "Speech synthesis via browser's SpeechSynthesis API",
+    "Audio download as WAV",
+    "Voice and language selection",
+    "Speed, pitch and volume control"
+  ],
+  "inLanguage": ["en", "vi"],
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "An Vu"
+  }
+}
+</script>
+  <link rel="stylesheet" href="style.css?v=2">
+</head>
+
+<body>
+  <main class="app">
+    <header>
+      <div>
+        <h1>An Vu TTS</h1>
+        <div class="sub" data-i18n="subtitle">Text to speech with browser SpeechSynthesis API</div>
+      </div>
+      <div>
+        <label for="ui-lang" class="sr-only" data-i18n="interface">Interface</label>
+        <select id="ui-lang" class="lang-select">
+          <option value="en">EN</option>
+          <option value="vi">VI</option>
+        </select>
+      </div>
+    </header>
+
+    <div id="no-speech" class="error" role="alert" data-i18n="noSpeech" hidden></div>
+
+    <div class="text-bar">
+      <label for="text" class="text-lbl" data-i18n="text">Text</label>
+      <div class="text-actions">
+        <button type="button" id="btn-paste" class="btn-sm" data-i18n="paste">Paste</button>
+        <button type="button" id="btn-open" class="btn-sm" data-i18n="openFile">Open file</button>
+        <button type="button" id="btn-clear" class="btn-sm" data-i18n="clear">Clear</button>
+        <input type="file" id="file-input" accept=".txt,.text,text/plain" hidden>
+      </div>
+    </div>
+
+    <div class="text-wrap">
+      <textarea id="text" spellcheck="false"></textarea>
+      <div id="viewer" class="viewer" aria-hidden="true"></div>
+      <div class="text-meta">
+        <div id="count">0 characters, 0 words</div>
+        <progress id="progress" value="0" max="100" aria-label="Reading progress"></progress>
+      </div>
+    </div>
+
+    <div class="btn-ctrl">
+      <button type="button" id="btn-read" class="btn-accent" data-i18n="read" title="Ctrl+Enter">Read</button>
+      <button type="button" id="btn-pause" disabled data-i18n="pause">Pause</button>
+      <button type="button" id="btn-resume" disabled data-i18n="resume">Resume</button>
+      <button type="button" id="btn-stop" disabled data-i18n="stop" title="Esc">Stop</button>
+      <button type="button" id="btn-download" data-i18n="download">Download</button>
+      <span id="status" class="status-text" aria-live="polite"></span>
+    </div>
+
+    <div class="settings">
+      <div class="voice-grid">
+        <div class="field">
+          <label for="lang-input" data-i18n="language">Language</label>
+          <div class="dropdown">
+            <div class="drop-box">
+              <input type="text" id="lang-input" role="combobox" aria-haspopup="listbox" aria-expanded="false" aria-autocomplete="list"
+                aria-controls="lang-menu" autocomplete="off" placeholder="All" data-i18n-placeholder="allPlaceholder">
+              <span class="drop-caret"></span>
+            </div>
+            <div class="drop-menu" id="lang-menu" role="listbox" hidden></div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="voice-input" data-i18n="voice">Voice</label>
+          <div class="voice-row">
+            <div class="dropdown">
+              <div class="drop-box">
+                <input type="text" id="voice-input" role="combobox" aria-haspopup="listbox" aria-expanded="false" aria-autocomplete="list"
+                  aria-controls="voice-menu" autocomplete="off" placeholder="Voice" data-i18n-placeholder="voice">
+                <span class="drop-caret"></span>
+              </div>
+              <div class="drop-menu" id="voice-menu" role="listbox" hidden></div>
+            </div>
+            <button type="button" id="btn-test" data-i18n="testVoice">Test voice</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="rate" data-i18n="speed">Speed</label>
+        <div class="range-row">
+          <input type="range" id="rate" min="0.25" max="2" step="0.05" value="1">
+          <input type="number" id="rate-num" min="0.25" max="2" step="0.05" value="1" aria-label="Speed"
+            data-i18n-aria="speed">
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="pitch" data-i18n="pitch">Pitch</label>
+        <div class="range-row">
+          <input type="range" id="pitch" min="0" max="2" step="0.1" value="1">
+          <input type="number" id="pitch-num" min="0" max="2" step="0.1" value="1" aria-label="Pitch"
+            data-i18n-aria="pitch">
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="volume" data-i18n="volume">Volume</label>
+        <div class="range-row">
+          <input type="range" id="volume" min="0" max="1" step="0.05" value="1">
+          <input type="number" id="volume-num" min="0" max="1" step="0.05" value="1" aria-label="Volume"
+            data-i18n-aria="volume">
+        </div>
+      </div>
+
+      <div class="settings-bottom">
+        <button type="button" id="btn-reset" data-i18n="reset">Reset</button>
+      </div>
+    </div>
+
+    </div>
+
+    <dialog id="guide-dialog">
+      <div class="guide-title" data-i18n="guideTitle">Download audio guide</div>
+      <div class="guide-body">
+        <p data-i18n="guideStep1">Browsers require audio permission to record SpeechSynthesis</p>
+        <p data-i18n="guideStep2">1. Select current tab or entire screen</p>
+        <p data-i18n="guideStep3">2. Enable share tab audio</p>
+        <p data-i18n="guideStep4">3. Audio will be recorded and saved as WAV</p>
+        <p class="guide-note" data-i18n="guideNote">Note: Audio recording requires sharing tab or screen audio.</p>
+      </div>
+      <div class="guide-foot">
+        <label class="guide-check">
+          <input type="checkbox" id="guide-dont-show">
+          <span data-i18n="dontShowGuide">Don't show this guide again</span>
+        </label>
+        <div class="guide-actions">
+          <button type="button" id="btn-close-guide" data-i18n="close">Close</button>
+          <button type="button" id="btn-confirm-download" class="btn-accent"
+            data-i18n="continueDownload">Continue</button>
+        </div>
+      </div>
+    </dialog>
+  </main>
+
+  <script src="app.js?v=2"></script>
+</body>
+
+</html>
